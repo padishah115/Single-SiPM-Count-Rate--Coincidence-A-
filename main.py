@@ -15,9 +15,12 @@ files_csv = []
 #Find all .csv files and append to list. Also strip the A.csv from each.
 for file in files:
     if '.csv' in file:
-        files_csv.append(file)
-        file_stripped = ''.join(letter for letter in file if letter.isdigit())
-        files_sanitised.append(file_stripped)
+        df = pd.read_csv(file)
+        count = df[' count0 ']
+        if len(count) > 1:
+            files_csv.append(file)
+            file_stripped = ''.join(letter for letter in file if letter.isdigit())
+            files_sanitised.append(file_stripped)
     
     
 voltages = []
@@ -65,34 +68,40 @@ for file in files_csv:
     time = df[' time ']
     count = df[' count0 ']
 
-    intervals = len(time) - 1
+    if len(count) > 1:
+
+        intervals = len(time) - 1
+        
+        dt = []
+        dcount = []
+        freq = []
+
+        for i in range (0, intervals):
+            dt_i = time[i+1] - time[i]
+            dt.append(dt_i)
+        
+        for j in range(0,intervals):
+            count_i = count[i+1] - count[i]
+            dcount.append(count_i)
+
+        for k in range(0, intervals):
+            freq_i = dcount[k] / dt[k]
+            freq_i *= 1000 #Convert from per millisecond to second
+            freq.append(freq_i)
+
+        count_avg = mean(freq)
+        mean_counts.append(count_avg)
     
-    dt = []
-    dcount = []
-    freq = []
-
-    for i in range (0, intervals):
-        dt_i = time[i+1] - time[i]
-        dt.append(dt_i)
-    
-    for j in range(0,intervals):
-        count_i = count[i+1] - count[i]
-        dcount.append(count_i)
-
-    for k in range(0, intervals):
-        freq_i = dcount[k] / dt[k]
-        freq_i *= 1000 #Convert from per millisecond to second
-        freq.append(freq_i)
-
-    count_avg = mean(freq)
-    mean_counts.append(count_avg)
+    else:
+        pass
 
 
 log_counts = np.log(mean_counts)
-plt.plot(voltages, log_counts)
-plt.xlabel('Voltages/mV')
+plt.scatter(voltages, log_counts, marker='o', label='data', s=3)
+plt.xlabel('Voltage/mV')
 plt.ylabel('log(Frequency / Hz)')
 plt.title('Dark Count Rate vs Threshold Voltage')
+plt.legend()
 plt.savefig('Dark Count 1')
 plt.show()
 
