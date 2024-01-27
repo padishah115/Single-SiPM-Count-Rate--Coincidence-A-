@@ -7,7 +7,7 @@ import os
 current_directory = os.getcwd()
 entries = os.listdir(current_directory)
 files = [f for f in entries if os.path.isfile(os.path.join(current_directory, f))]
-print(files)
+#print(files)
 
 files_sanitised = []
 files_csv = []
@@ -97,11 +97,10 @@ for file in files_csv:
 
 
 log_counts = np.log(mean_counts)
-plt.scatter(voltages, log_counts, marker='o', label='data', s=3)
+plt.scatter(voltages, log_counts, marker='o', s=3)
 plt.xlabel('Voltage/mV')
 plt.ylabel('log(Frequency / Hz)')
 plt.title('Dark Count Rate vs Threshold Voltage')
-plt.legend()
 plt.savefig('Dark Count 1')
 plt.show()
 
