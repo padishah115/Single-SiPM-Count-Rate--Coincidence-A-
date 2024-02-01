@@ -31,10 +31,7 @@ for i in files_sanitised:
 
 voltages.sort()
 
-mean_counts = []
-mean_counts_upper = []
-mean_counts_lower = []
-count_err = []
+mean_counts_1 = [] #For first column if reading more than 1 set of data
 
 def mean(x):
     N = len(x)
@@ -47,57 +44,29 @@ def mean(x):
 
     return mean1
 
-def variance(x):
-    N = len(x)
-    total_x = 0
-    total_xsquare = 0
-
-    for i in x:
-        total_x += i
-        total_xsquare += i**2
-
-    x_bar = total_x / N
-    x_bar_square = total_xsquare / N
-
-    var = x_bar_square - x_bar**2
-
-    return abs(var)
 
 for file in files_csv:
     df = pd.read_csv(file)
     time = df[' time ']
     count = df[' count0 ']
 
-    if len(count) > 1:
+    if len(count) > 1 and len(time) > 1:
 
-        intervals = len(time) - 1
         
-        dt = []
-        dcount = []
-        freq = []
-
-        for i in range (0, intervals):
-            dt_i = time[i+1] - time[i]
-            dt.append(dt_i)
+        dt = time[len(time)-1] - time[0]
+        dcount = count[len(count)-1] - count[0]
         
-        for j in range(0,intervals):
-            count_i = count[i+1] - count[i]
-            dcount.append(count_i)
+        freq = dcount / dt * 1000
 
-        for k in range(0, intervals):
-            freq_i = dcount[k] / dt[k]
-            freq_i *= 1000 #Convert from per millisecond to second
-            freq.append(freq_i)
-
-        count_avg = mean(freq)
-        mean_counts.append(count_avg)
+        mean_counts_1.append(freq)
     
     else:
         pass
 
 
-log_counts = np.log(mean_counts)
-plt.scatter(voltages, log_counts, marker='o', s=3)
+plt.scatter(voltages, mean_counts_1, marker='o', s=3, label = 'data1')
+plt.plot(voltages, mean_counts_1)
+plt.yscale('log')
 plt.xlabel('Voltage/mV')
 plt.ylabel('log(Frequency / Hz)')
 plt.title('Dark Count Rate vs Threshold Voltage')
