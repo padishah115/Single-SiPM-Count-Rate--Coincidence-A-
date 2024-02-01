@@ -29,20 +29,16 @@ voltages = []
 for i in files_sanitised:
     voltages.append(float(i))
 
-voltages.sort()
-
 mean_counts_1 = [] #For first column if reading more than 1 set of data
+error_1 = [] #For error bars
 
-def mean(x):
-    N = len(x)
-    total = 0
+def get_error(freq, time, N, delt):
+    """Assuming shot noise and using the errors in quadrature formula"""
+    a = 1/N + (delt/time)**2
 
-    for i in x:
-        total += i
-
-    mean1 = total / N
-
-    return mean1
+    sigma_f = freq * np.sqrt(a)
+    
+    return sigma_f
 
 
 for file in files_csv:
@@ -53,18 +49,22 @@ for file in files_csv:
     if len(count) > 1 and len(time) > 1:
 
         
-        dt = time[len(time)-1] - time[0]
-        dcount = count[len(count)-1] - count[0]
+        t = time[len(time)-1] - time[0] #Total time over which data was collected
+        counts = count[len(count)-1] - count[0] #Number of total detection events
         
-        freq = dcount / dt * 1000
+        freq = counts / t * 1000
 
         mean_counts_1.append(freq)
+
+        #csv contains time in milliseconds, so delt = 1 in this scale
+        error_1.append(get_error(freq, t, counts, 1))
     
     else:
         pass
 
 
-plt.scatter(voltages, mean_counts_1, marker='o', s=3, label = 'data1')
+#plt.scatter(voltages, mean_counts_1, marker='-o', s=3, label = 'data1')
+plt.errorbar(voltages, mean_counts_1, error_1, fmt='-o', label = 'data1', capsize=5, markersize=1)
 plt.plot(voltages, mean_counts_1)
 plt.yscale('log')
 plt.xlabel('Voltage/mV')
